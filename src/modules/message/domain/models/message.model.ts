@@ -3,5 +3,5 @@ export interface Message {
   remitente_id: number;
   destinatario_id: number;
   mensaje: string;
-  fecha_envio: Date;
+  fecha_envio: Date | string;  // Permitir que fecha_envio sea Date o string
 }

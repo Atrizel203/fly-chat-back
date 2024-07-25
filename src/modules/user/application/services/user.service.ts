@@ -12,6 +12,10 @@ export class UserService {
     return this.userRepository.findById(id);
   }
 
+  async authenticateUser(email: string) : Promise<User[] | null>{
+    return this.userRepository.findByEmail(email);
+  }
+
   async getUsersByName(name: string): Promise<User[]> {
     return this.userRepository.findByName(name);
   }

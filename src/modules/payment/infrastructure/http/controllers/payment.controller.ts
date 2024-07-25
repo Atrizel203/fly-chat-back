@@ -1,32 +1,23 @@
-  import { Request, Response } from 'express';
-  import { PaymentUseCases } from '../../../application/usecases/payment.usecases';
-  import { MySQLPaymentRepository } from '../../adapters/mysql/payment.repository.impl';
-  import { Payment } from '../../../domain/models/payment.model';
+import { Request, Response } from 'express';
+import { CreatePaymentUseCase } from '../../../application/usecases/payment.usecases';
 
-  const paymentRepository = new MySQLPaymentRepository();
-  const paymentUseCases = new PaymentUseCases(paymentRepository);
+export class PaymentController {
+  static async fakePayment(req: Request, res: Response): Promise<void> {
+    const { userId, amount, paymentMethod } = req.body;
 
-  export class PaymentController {
-    static async getPayments(req: Request, res: Response): Promise<void> {
-      const payments = await paymentUseCases.getAllPayments();
-      res.json(payments);
+    try {
+      const payment = {
+        usuario_id: userId,
+        monto: amount,
+        metodo_pago: paymentMethod
+      };
+
+      await CreatePaymentUseCase.execute(payment);
+
+      res.json({ message: 'Pago exitoso' });
+    } catch (error) {
+      console.error('Error al procesar el pago ficticio:', error);
+      res.status(500).json({ message: 'Error al procesar el pago ficticio' });
     }
-
-    static async getPaymentById(req: Request, res: Response): Promise<void> {
-      const id = parseInt(req.params.id, 10);
-      const payment = await paymentUseCases.getPaymentById(id);
-      if (payment) {
-        res.json(payment);
-      } else {
-        res.status(404).send('Payment not found');
-      }
-    }
-
-    static async createPayment(req: Request, res: Response): Promise<void> {
-      const payment = req.body as Payment;
-      await paymentUseCases.createPayment(payment);
-      res.status(201).send('Payment created');
-    }
-
-    
   }
+}

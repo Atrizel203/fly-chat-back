@@ -1,12 +1,13 @@
 import express from 'express';
-import "dotenv/config";
 import cors from 'cors';
 import userRoutes from './modules/user/infrastructure/routes/user.routes';
 import messageRoutes from './modules/message/infrastructure/routes/message.routes';
 import paymentRoutes from './modules/payment/infrastructure/routes/payment.routes';
 import http from 'http';
-import { WebSocketServer } from 'ws';
-import { createMessageUseCase } from './modules/message/application/usecases';
+import { WebSocketServer, WebSocket } from 'ws'; // Importa WebSocketServer y WebSocket desde el paquete 'ws'
+import { connectToMQTTBroker } from './modules/message/rabbitmq/mqtt-connection';
+import { Message } from './modules/message/domain/models/message.model';
+import { deleteMessageUseCase } from './modules/message/application/usecases';
 
 const app = express();
 const server = http.createServer(app);
@@ -18,33 +19,57 @@ app.use('/api', userRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api', paymentRoutes);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3360;
 
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
-  ws.on('message', async (message: Buffer) => {
-    try {
-      const messageString = message.toString('utf-8');
-      const parsedMessage = JSON.parse(messageString);
-
-      // Guarda el mensaje en la base de datos
-      await createMessageUseCase.execute(parsedMessage);
-
-      // Broadcast the message to all connected clients
-      wss.clients.forEach((client) => {
-        if (client.readyState === ws.OPEN) {
-          client.send(JSON.stringify(parsedMessage));
-        }
-      });
-    } catch (error) {
-      console.error('Error handling message:', error);
-    }
+  console.log('Client connected');
+  ws.on('message', (message) => {
+    console.log('Message received:', message.toString());
+    ws.send(`Server received: ${message}`);
   });
 
-  ws.send('WebSocket connection established');
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
+});
+
+interface DeleteMessageNotification {
+  type: 'delete';
+  id: number;
+}
+
+function broadcastMessage(message: Message | DeleteMessageNotification) {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(message));
+    }
+  });
+}
+
+app.delete('/api/messages/:id', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  try {
+    const result = await deleteMessageUseCase.execute(id);
+    if (result) {
+      res.status(200).send('Message deleted');
+      broadcastMessage({ type: 'delete', id });
+    } else {
+      res.status(404).send('Message not found');
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).send(error.message);
+    } else {
+      res.status(500).send('An unknown error occurred');
+    }
+  }
 });
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  connectToMQTTBroker();
 });
+
+export { broadcastMessage };

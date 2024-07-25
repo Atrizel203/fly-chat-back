@@ -1,14 +1,23 @@
 import { Router } from 'express';
 import { MessageController } from '../http/controllers/message.controller';
+import { MessageService } from '../../application/services/message.service';
+import { MySQLMessageRepository } from '../adapters/mysql/message.repository.impl';
 
-const router = Router();
+const messageRouter = Router();
+const messageRepository = new MySQLMessageRepository();
+const messageService = new MessageService(messageRepository);
+const messageController = new MessageController(messageService);
 
+// Crear un mensaje
+messageRouter.post('/', messageController.createMessage);
 
-router.get('/user/:userId', MessageController.getMessagesByUserId);
+// Obtener un mensaje por ID
+messageRouter.get('/:id', MessageController.getMessageById);
 
+// Obtener mensajes por ID de usuario
+messageRouter.get('/user/:userId', MessageController.getMessagesByUserId);
 
-router.get('/:id', MessageController.getMessageById);
-router.post('/', MessageController.createMessage);
-router.delete('/:id', MessageController.deleteMessage);
+// Eliminar un mensaje por ID
+messageRouter.delete('/:id', MessageController.deleteMessage);
 
-export default router;
+export default messageRouter;

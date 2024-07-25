@@ -3,6 +3,7 @@ import { Message } from '../../../domain/models/message.model';
 import { pool } from '../../../../../config/database.config';
 
 export class MySQLMessageRepository implements MessageRepository {
+  
   async findAll(): Promise<Message[]> {
     console.log('Fetching all messages');
     const [rows] = await pool.query('SELECT * FROM Mensajes');
