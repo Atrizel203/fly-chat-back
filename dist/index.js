@@ -29,7 +29,7 @@ app.use(express_1.default.json());
 app.use('/api', user_routes_1.default);
 app.use('/api/messages', message_routes_1.default);
 app.use('/api', payment_routes_1.default);
-const PORT = process.env.PORT || 3360;
+const PORT = 80;
 const wss = new ws_1.WebSocketServer({ server });
 wss.on('connection', (ws) => {
     console.log('Client connected');
