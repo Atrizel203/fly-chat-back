@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getMessagesByUserIdUseCase = exports.deleteMessageUseCase = exports.getMessageByIdUseCase = exports.createMessageUseCase = void 0;
+const message_repository_impl_1 = require("../../infrastructure/adapters/mysql/message.repository.impl");
+const create_message_usecase_1 = require("./create-message.usecase");
+const get_message_by_id_usecase_1 = require("./get-message-by-id.usecase");
+const delete_message_usecase_1 = require("./delete-message.usecase");
+const get_messages_by_user_id_usecase_1 = require("./get-messages-by-user-id.usecase");
+const messageRepository = new message_repository_impl_1.MySQLMessageRepository();
+exports.createMessageUseCase = new create_message_usecase_1.CreateMessageUseCase(messageRepository);
+exports.getMessageByIdUseCase = new get_message_by_id_usecase_1.GetMessageByIdUseCase(messageRepository);
+exports.deleteMessageUseCase = new delete_message_usecase_1.DeleteMessageUseCase(messageRepository);
+exports.getMessagesByUserIdUseCase = new get_messages_by_user_id_usecase_1.GetMessagesByUserIdUseCase(messageRepository);
