@@ -19,7 +19,7 @@ app.use('/api', userRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api', paymentRoutes);
 
-const PORT = process.env.PORT || 80;
+const PORT = 80;
 
 const wss = new WebSocketServer({ server });
 
